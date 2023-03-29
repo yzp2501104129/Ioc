@@ -8,7 +8,7 @@ namespace ioc
 {
     public interface IOCInterface
     {
-        void RegisterType<FORM, TO>() where FORM : TO;
+        void RegisterType<FORM, TO>() where TO : FORM;
 
         From Resolve<From>();
     }

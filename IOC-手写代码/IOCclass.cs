@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConsoleApp1;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,22 +9,23 @@ namespace ioc
 {
     public class IOCclass : IOCInterface
     {
-        private static Dictionary<string, object> keyValues = new Dictionary<string, object>();
+        private static Dictionary<string, Type> keyValues = new Dictionary<string, Type>();
 
-        public void RegisterType<From, TO>() where From : TO
+        public void RegisterType<From, TO>() where TO : From
         {
-            keyValues.Add(typeof(From).FullName, typeof(From));
+            keyValues.Add(typeof(From).FullName, typeof(TO));
         }
 
         public From Resolve<From>()
         {
-            Object OBJ = keyValues[typeof(From).FullName];
+            Type OBJ = keyValues[typeof(From).FullName];
             return (From)Resolve2(OBJ);
 
         }
-        private object Resolve2(object OBJ)
+        private object Resolve2(Type OBJ)
         {
-            var ConstructorsList = OBJ.GetType().GetConstructors();
+
+            var ConstructorsList = OBJ.GetConstructors();
             var Ctor = ConstructorsList.FirstOrDefault(x => x.IsDefined(typeof(IOCAttribute), true));
             if (Ctor == null)
             {
@@ -33,10 +35,10 @@ namespace ioc
             foreach (var item in Ctor.GetParameters())
             {
                 var param = keyValues[item.ParameterType.FullName];
-                Resolve2(param);
-                listobj.Add(param);
+                var SonObj = Resolve2(param);
+                listobj.Add(SonObj);
             }
-            return Activator.CreateInstance(OBJ.GetType(), listobj.ToArray());
+            return Activator.CreateInstance(OBJ, listobj.ToArray());
         }
     }
 }
